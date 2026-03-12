@@ -2,12 +2,12 @@
 import { useState, useEffect, useRef } from 'react';
 
 export default function DropzoneSection({ getRootProps, getInputProps, isDragActive, preview, file }) {
-  // state: animation tracking
-  const [scrollScale, setScrollScale] = useState(0.8);
+  // state: viewport animation tracking
+  const [scrollScale, setScrollScale] = useState(0.95);
   const [borderRadius, setBorderRadius] = useState(40);
   const sectionRef = useRef(null);
 
-  // effect: scroll-based expansion logic
+  // effect: premium scroll-linked expansion
   useEffect(() => {
     const handleScroll = () => {
       if (!sectionRef.current) return;
@@ -16,8 +16,9 @@ export default function DropzoneSection({ getRootProps, getInputProps, isDragAct
       const distanceFromCenter = Math.abs(rect.top + rect.height / 2 - viewportHeight / 2);
       const progress = Math.max(0, 1 - distanceFromCenter / viewportHeight);
 
-      setScrollScale(0.8 + (progress * 0.2));
-      setBorderRadius(40 - (progress * 40));
+      // subtly scale from 95% to 100% when centered
+      setScrollScale(0.95 + (progress * 0.05));
+      setBorderRadius(40 - (progress * 16));
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -25,76 +26,97 @@ export default function DropzoneSection({ getRootProps, getInputProps, isDragAct
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // safety: prevents crash if props missing
   if (!getRootProps) return null;
 
   return (
-    <section ref={sectionRef} className="relative w-full flex justify-center py-24 overflow-hidden bg-transparent">
-      {/* container: glassmorphism & scale effect */}
+    <section ref={sectionRef} className="relative w-full flex justify-center py-32 overflow-hidden bg-transparent">
+
+      {/* container: technical bounding box */}
       <div
         {...getRootProps()}
         style={{
           transform: `scale(${scrollScale})`,
           borderRadius: `${borderRadius}px`,
-          transition: 'transform 0.2s ease-out, border-radius 0.2s ease-out'
+          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
         }}
         className={`
-          w-full max-w-4xl min-h-[550px] cursor-pointer
-          border border-[#E2E8F0] bg-white/80 backdrop-blur-xl
-          flex flex-col items-center justify-between p-8 relative
-          transition-all duration-500 group
-          ${isDragActive ? 'ring-4 ring-[#8B5CF6]/10 border-[#8B5CF6]' : 'shadow-[0_20px_50px_rgba(139,92,246,0.1)]'}
+          w-full max-w-5xl aspect-[16/9] min-h-[500px] cursor-pointer
+          border bg-white shadow-2xl relative overflow-hidden
+          flex flex-col items-center justify-center p-8
+          transition-colors duration-300 group
+          ${isDragActive ? 'border-orange-500 bg-orange-50/20' : 'border-black hover:border-zinc-400'}
         `}
       >
         <input {...getInputProps()} />
 
-        {/* header: modal style title */}
-        <div className="w-full flex justify-between items-center mb-4">
-          <h3 className="text-[#64748B] text-lg font-medium">Upload your image</h3>
-          <div className="text-[#94A3B8] hover:text-[#64748B] transition-colors text-xl">✕</div>
+        {/* decoration: corner registry marks */}
+        <div className="absolute top-6 left-6 w-4 h-4 border-t border-l border-zinc-300" />
+        <div className="absolute top-6 right-6 w-4 h-4 border-t border-r border-zinc-300" />
+        <div className="absolute bottom-6 left-6 w-4 h-4 border-b border-l border-zinc-300" />
+        <div className="absolute bottom-6 right-6 w-4 h-4 border-b border-r border-zinc-300" />
+
+        {/* header: module status */}
+        <div className="absolute top-8 left-0 w-full px-12 flex justify-between items-center z-10">
+          <span className="text-[10px] font-bold font-mango uppercase tracking-widest text-zinc-400">
+            [ Module_01 ]
+          </span>
+          <span className={`text-[10px] font-bold font-mango uppercase tracking-widest px-3 py-1 rounded-full border ${isDragActive ? 'bg-orange-500 text-white border-orange-500' : 'bg-zinc-100 text-zinc-400 border-zinc-200'}`}>
+            {isDragActive ? 'Awaiting Drop' : 'Input Standby'}
+          </span>
         </div>
 
-        {/* zone: interactive drop area */}
-        <div className={`
-          flex-1 w-full border-2 border-dashed rounded-3xl flex flex-col items-center justify-center p-12 transition-colors
-          ${isDragActive ? 'bg-[#F5F3FF] border-[#C4B5FD]' : 'bg-[#F8FAFC] border-[#E2E8F0]'}
-        `}>
-
-          {preview ? (
-            /* view: upload success & preview */
-            <div className="animate-in fade-in zoom-in duration-500 text-center flex flex-col items-center">
-              <div className="relative group mb-4">
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="w-32 h-32 object-contain rounded-2xl bg-white shadow-md p-2"
-                />
-              </div>
-              <p className="text-[#64748B] font-medium">{file?.name || 'image_uploaded.png'}</p>
-              <p className="text-[#94A3B8] text-sm italic">File ready for processing</p>
+        {preview ? (
+          /* view: loaded asset preview */
+          <div className="animate-in fade-in zoom-in-95 duration-700 flex flex-col items-center w-full z-10 mt-8">
+            <div className="bg-[#F8F8F8] p-12 rounded-2xl border border-zinc-200 shadow-inner mb-8 relative group-hover:scale-[1.02] transition-transform duration-500">
+              <div className="absolute top-4 right-4 text-[8px] font-black opacity-20 tracking-widest font-mango">MASTER_FILE</div>
+              <img
+                src={preview}
+                alt="Preview"
+                className="w-48 h-48 object-contain drop-shadow-2xl"
+              />
             </div>
-          ) : (
-            /* view: empty state & instructions */
-            <div className="text-center space-y-6">
-              <div className="relative inline-block group">
-                <div className="w-24 h-24 bg-gradient-to-br from-[#A78BFA] to-[#7C3AED] rounded-3xl shadow-[0_10px_25px_rgba(139,92,246,0.4)] flex items-center justify-center transform group-hover:-translate-y-1 transition-transform">
-                  <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                  </svg>
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <p className="text-[#64748B] text-lg">
-                  Drag and drop or <span className="text-[#7C3AED] font-semibold underline">choose file</span> to upload.
-                </p>
-                <p className="text-[#94A3B8] text-sm">
-                  Image format : JPG, PNG & SVG. Max 5.0MB
-                </p>
+            <div className="flex flex-col items-center space-y-2">
+              <p className="text-3xl font-medium tracking-tighter uppercase italic">{file?.name || 'Asset Loaded'}</p>
+              <p className="font-mango text-[10px] tracking-widest text-orange-500 font-bold uppercase">
+                Ready for processing →
+              </p>
+            </div>
+          </div>
+        ) : (
+          /* view: empty drop target */
+          <div className="text-center space-y-10 z-10 flex flex-col items-center mt-8">
+
+            {/* icon: minimal crosshair */}
+            <div className={`relative flex items-center justify-center w-32 h-32 rounded-full border border-dashed transition-all duration-500 ${isDragActive ? 'border-orange-500 scale-110 bg-orange-50/50' : 'border-zinc-300 bg-zinc-50 group-hover:bg-zinc-100'}`}>
+              <div className={`w-12 h-[1px] absolute ${isDragActive ? 'bg-orange-500' : 'bg-black'}`} />
+              <div className={`h-12 w-[1px] absolute ${isDragActive ? 'bg-orange-500' : 'bg-black'}`} />
+              <div className="w-2 h-2 rounded-full bg-white border border-black z-10" />
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-5xl md:text-6xl font-medium tracking-tighter uppercase italic">
+                {isDragActive ? 'Release to Load' : 'Drag & Drop Asset'}
+              </h3>
+              <div className="flex items-center justify-center gap-4 text-[10px] font-bold font-mango tracking-[0.2em] text-zinc-400 uppercase">
+                <span>PNG</span>
+                <span className="w-1 h-1 bg-zinc-300 rounded-full" />
+                <span>JPG</span>
+                <span className="w-1 h-1 bg-zinc-300 rounded-full" />
+                <span>SVG</span>
               </div>
             </div>
-          )}
-        </div>
+
+            {/* button: manual trigger hint */}
+            <div className="px-6 py-3 bg-black text-white text-[10px] font-bold tracking-[0.2em] uppercase rounded-full hover:bg-orange-500 transition-colors">
+              Or Browse Files
+            </div>
+          </div>
+        )}
+
+        {/* background: subtle grid overlay */}
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
       </div>
     </section>
   );

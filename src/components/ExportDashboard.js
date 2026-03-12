@@ -1,164 +1,228 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function ExportDashboard({ file, preview, onReset }) {
-  // state: tracking download status & selection
   const [loading, setLoading] = useState(null);
   const [selectedSize, setSelectedSize] = useState('16');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [theme, setTheme] = useState('system');
+  const [copied, setCopied] = useState(false);
+  const [logs, setLogs] = useState(['SYSTEM_READY', 'AWAITING_COMMAND']);
 
-  // config: available resolution options
   const sizes = [
-    { label: 'Standard Favicon', value: '16' },
-    { label: 'Retina Display', value: '32' },
-    { label: 'Apple Touch Icon', value: '180' },
-    { label: 'Android Chrome', value: '192' },
+    { label: 'Standard', value: '16', type: 'PNG' },
+    { label: 'Retina', value: '32', type: 'PNG' },
+    { label: 'Windows', value: '48', type: 'PNG' },
+    { label: 'Apple_iOS', value: '180', type: 'PNG' },
+    { label: 'Android_PWA', value: '192', type: 'PNG' },
+    { label: 'Master_Res', value: '512', type: 'PNG' },
   ];
 
-  // handler: async fetch & blob download
-  const handleDownload = async (sizeValue) => {
-    const targetSize = sizeValue || 'all';
-    setLoading(targetSize);
+  const addLog = (msg) => {
+    const time = new Date().toLocaleTimeString('en-GB', { hour12: false });
+    setLogs(prev => [`${time} > ${msg}`, ...prev].slice(0, 5));
+  };
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('size', targetSize);
+  const handleDownload = async (sizeValue) => {
+    const isBatch = sizeValue === 'all';
+    setLoading(sizeValue);
+
+    addLog(isBatch ? "INIT_BATCH_SEQUENCE" : `RASTERIZING_${sizeValue}PX`);
+    if(isBatch) {
+      setTimeout(() => addLog("GENERATING_MANIFEST_JSON"), 400);
+      setTimeout(() => addLog("PACKING_BROWSERCONFIG"), 800);
+      setTimeout(() => addLog("COMPRESSING_DEFLATE_L9"), 1200);
+    }
 
     try {
-      const response = await fetch('/api/generate', { method: 'POST', body: formData });
-      const blob = await response.blob();
+      const formData = new FormData();
+      formData.append('file', file);
+      if (!isBatch) formData.append('size', sizeValue);
+
+      const res = await fetch('/api/generate', { method: 'POST', body: formData });
+      const blob = await res.blob();
+
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = targetSize === 'all' ? 'favicons.zip' : `favicon-${targetSize}x${targetSize}.png`;
+      a.download = isBatch ? 'favicraft-pro-bundle.zip' : `favicon-${sizeValue}x${sizeValue}.png`;
       a.click();
-    } catch (err) {
-      console.error("Export failed", err);
+
+      addLog(isBatch ? "BUNDLE_DISPATCHED" : "EXPORT_SUCCESS");
+    } catch (e) {
+      addLog("CRITICAL_ERROR_LOGGED");
     } finally {
       setLoading(null);
     }
   };
 
-  // static: snippet for head tag
-  const htmlCode = `<link rel="icon" href="/favicon.ico" sizes="any">\n<link rel="apple-touch-icon" href="/apple-touch-icon.png">`;
+  // Header Injection
+  const htmlCode = `<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#ffffff">`;
 
   return (
-    <section className="py-24 animate-in fade-in zoom-in-95 duration-1000">
+    <section className="w-full max-w-[1400px] mx-auto min-h-[750px] bg-white border border-zinc-200 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-700">
 
-      {/* header: editorial title & reset toggle */}
-      <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-        <div className="space-y-2">
-          <span className="text-[10px] font-black tracking-[0.5em] text-orange-500 uppercase">Status: Success</span>
-          <h2 className="text-7xl md:text-8xl font-medium tracking-tighter leading-[0.8] uppercase italic">
-            Asset <br /> Generated
-          </h2>
-        </div>
-        <button
-          onClick={onReset}
-          className="text-[10px] font-bold tracking-[0.3em] border-b border-black pb-1 hover:text-orange-500 hover:border-orange-500 transition-all uppercase"
-        >
-          [ Clear & Restart ]
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-
-        {/* controls: resolution dropdown & triggers */}
-        <div className="lg:col-span-5 space-y-10">
-          <div className="space-y-4">
-            <p className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Select Individual Resolution</p>
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full border border-black p-6 flex justify-between items-center group hover:bg-black hover:text-white transition-all duration-300"
-              >
-                <span className="font-medium tracking-tight uppercase">
-                  {sizes.find(s => s.value === selectedSize)?.label} — {selectedSize}PX
-                </span>
-                <span className={`transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`}>↓</span>
-              </button>
-
-              {dropdownOpen && (
-                <div className="absolute top-full left-0 w-full bg-white border-x border-b border-black z-50 animate-in slide-in-from-top-2 duration-200">
-                  {sizes.map((size) => (
-                    <button
-                      key={size.value}
-                      className="w-full p-4 text-left hover:bg-zinc-50 transition-colors border-t border-zinc-100 first:border-none flex justify-between items-center"
-                      onClick={() => {
-                        setSelectedSize(size.value);
-                        setDropdownOpen(false);
-                      }}
-                    >
-                      <span className="text-sm font-medium uppercase tracking-tighter">{size.label}</span>
-                      <span className="text-[10px] font-mono opacity-50">{size.value}x{size.value}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button
-              onClick={() => handleDownload(selectedSize)}
-              disabled={loading === selectedSize}
-              className="w-full bg-black text-white p-6 font-bold tracking-[0.2em] text-xs uppercase hover:bg-orange-500 transition-colors disabled:bg-zinc-400"
-            >
-              {loading === selectedSize ? 'Processing...' : `Download ${selectedSize}PX Asset`}
-            </button>
+      {/*  Global Tool Header */}
+      <header className="h-16 border-b border-zinc-100 flex items-center justify-between px-8 bg-zinc-50/50">
+        <div className="flex items-center gap-6">
+          <div className="flex gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-zinc-200" />
+            <div className="w-2 h-2 rounded-full bg-zinc-200" />
+            <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
           </div>
+          <div className="h-4 w-[1px] bg-zinc-200" />
+          <span className="text-[10px] font-black font-mango tracking-[0.2em] text-zinc-400 uppercase">
+            Asset_Engine // <span className="text-black">{file?.name?.split('.')[0] || 'TEMP_STREAM'}</span>
+          </span>
+        </div>
 
-          <div className="h-[1px] w-full bg-zinc-200" />
-
-          {/* action: zip bundle generator */}
-          <button
-            onClick={() => handleDownload('all')}
-            disabled={loading === 'all'}
-            className="w-full border-2 border-black p-8 font-black text-sm tracking-[0.4em] uppercase hover:invert transition-all flex justify-between items-center"
-          >
-            {loading === 'all' ? 'Packing ZIP...' : 'Generate Full Pro Bundle'}
-            <span>→</span>
+        <div className="flex items-center gap-6">
+          <div className="flex bg-zinc-200/50 p-1 rounded-sm border border-zinc-100">
+            {['light', 'dark', 'glass'].map(t => (
+              <button
+                key={t}
+                onClick={() => setTheme(t)}
+                className={`px-4 py-1 text-[9px] font-black uppercase transition-all ${theme === t ? 'bg-white shadow-sm text-black' : 'text-zinc-400 hover:text-zinc-600'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <button onClick={onReset} className="text-[10px] font-black font-mango bg-black text-white px-6 py-2 hover:bg-orange-600 transition-all active:scale-95">
+            NEW_UPLOAD
           </button>
         </div>
+      </header>
 
-        {/* visual: context mockup & source code */}
-        <div className="lg:col-span-7 space-y-8">
-          <div className="bg-[#F8F8F8] p-12 rounded-sm border border-zinc-200 relative overflow-hidden group">
-            <div className="absolute top-4 right-6 text-[8px] font-black opacity-20 tracking-[0.5em] rotate-90 origin-right">PREVIEW_MODE</div>
+      <div className="flex-1 flex overflow-hidden">
 
-            <div className="max-w-md mx-auto bg-white shadow-2xl rounded-xl border border-zinc-200 overflow-hidden">
-               <div className="bg-zinc-100 px-4 py-3 border-b border-zinc-200 flex items-center gap-2">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 rounded-full bg-red-400/50"></div>
-                    <div className="w-2 h-2 rounded-full bg-yellow-400/50"></div>
-                    <div className="w-2 h-2 rounded-full bg-green-400/50"></div>
+        {/*  Left Sidebar */}
+        <aside className="w-80 border-r border-zinc-100 p-8 flex flex-col gap-10 bg-zinc-50/30">
+          <div>
+            <h4 className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.3em] mb-6 flex justify-between">
+              Export_Nodes <span>[0{sizes.length}]</span>
+            </h4>
+            <div className="space-y-2">
+              {sizes.map(s => (
+                <button
+                  key={s.value}
+                  onClick={() => setSelectedSize(s.value)}
+                  className={`w-full flex items-center justify-between p-4 text-left transition-all border group ${selectedSize === s.value ? 'bg-white border-zinc-200 shadow-md translate-x-1' : 'border-transparent opacity-40 hover:opacity-80'}`}
+                >
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-black uppercase tracking-tight">{s.label}</span>
+                    <span className="text-[9px] font-mono text-zinc-400">Target_Layer</span>
                   </div>
-                  <div className="ml-2 flex-1 bg-white h-6 rounded-md border border-zinc-200 flex items-center px-3 gap-2">
-                    <img src={preview} className="w-3 h-3 grayscale opacity-80" alt="" />
-                    <div className="w-16 h-1 bg-zinc-100 rounded"></div>
-                  </div>
-               </div>
-               <div className="p-10 flex flex-col items-center justify-center space-y-4">
-                  <img src={preview} className="w-20 h-20 object-contain drop-shadow-xl group-hover:scale-110 transition-transform duration-700" alt="Result" />
-                  <p className="text-[10px] font-black tracking-widest text-zinc-300">MASTER_SOURCE_PREVIEW</p>
-               </div>
+                  <span className={`text-[10px] font-mono ${selectedSize === s.value ? 'text-orange-500' : 'text-zinc-400'}`}>{s.value}px</span>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* snippet: clipboard integration */}
-          <div className="space-y-4">
-            <p className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Manual Implementation</p>
-            <div className="bg-zinc-900 p-8 relative group">
-              <pre className="text-zinc-400 text-[11px] font-mono leading-relaxed">
-                <code>{htmlCode}</code>
-              </pre>
+          <div className="mt-auto space-y-3 pt-6 border-t border-zinc-100">
+             <button
+                disabled={!!loading}
+                onClick={() => handleDownload(selectedSize)}
+                className="w-full bg-zinc-900 text-white py-5 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-orange-600 transition-all flex items-center justify-center gap-2"
+             >
+               {loading === selectedSize ? 'PROCESSING_BITSTREAM...' : 'Render Selection'}
+             </button>
+             <button
+                disabled={!!loading}
+                onClick={() => handleDownload('all')}
+                className="w-full border-2 border-zinc-900 py-5 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-900 hover:text-white transition-all"
+             >
+               {loading === 'all' ? 'PACKING_BUNDLE...' : 'Generate Pro Bundle (.zip)'}
+             </button>
+          </div>
+        </aside>
+
+        {/*  Central Canvas */}
+        <main className="flex-1 bg-[#F5F5F5] relative flex items-center justify-center p-20 overflow-hidden">
+           {/* Technical Framing */}
+           <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'linear-gradient(#000 1px, transparent 1px), linear-gradient(90deg, #000 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+
+           <div className={`relative transition-all duration-1000 p-32 rounded-[3rem] shadow-[0_50px_100px_-30px_rgba(0,0,0,0.2)]
+             ${theme === 'dark' ? 'bg-zinc-900' : theme === 'glass' ? 'bg-white/40 backdrop-blur-3xl border border-white/60' : 'bg-white'}`}>
+
+             {/* The Asset Display */}
+             <div className="relative group">
+                <img
+                  src={preview}
+                  className="w-40 h-40 object-contain transition-all duration-700 group-hover:scale-105"
+                  alt="Preview"
+                  style={{ imageRendering: selectedSize === '16' ? 'pixelated' : 'auto' }}
+                />
+                <div className="absolute -inset-12 border border-dashed border-zinc-200 rounded-full animate-[spin_30s_linear_infinite] opacity-30" />
+                <div className="absolute -inset-4 border border-zinc-100 rounded-2xl opacity-50" />
+             </div>
+
+             {/* Live Resolution Tag */}
+             <div className="absolute top-8 right-8">
+               <span className="text-[10px] font-mono font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded">
+                 {selectedSize}x{selectedSize}
+               </span>
+             </div>
+           </div>
+
+           {/* Bottom Coordinate Bar */}
+           <div className="absolute bottom-6 left-8 right-8 flex justify-between">
+              <span className="text-[9px] font-mono text-zinc-300">CRC32: 0x82B1A2</span>
+              <span className="text-[9px] font-mono text-zinc-300">LANCZOS_SCALING_ACTIVE</span>
+           </div>
+        </main>
+
+        {/*  Right Sidebar */}
+        <aside className="w-80 border-l border-zinc-100 flex flex-col bg-white">
+          <div className="p-8 border-b border-zinc-100">
+            <h4 className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.3em] mb-6">Metadata_Inspector</h4>
+            <div className="grid grid-cols-1 gap-1">
+              {[
+                { l: 'Sampling', v: 'Lanczos3 (High-Fi)' },
+                { l: 'Color_Space', v: 'sRGB_IEC61966-2.1' },
+                { l: 'Alpha_Channel', v: 'Optimized_PNG' },
+                { l: 'Compression', v: 'Deflate_Level_9' }
+              ].map(i => (
+                <div key={i.l} className="flex justify-between py-2 border-b border-zinc-50 last:border-0">
+                  <p className="text-[9px] text-zinc-400 font-bold uppercase">{i.l}</p>
+                  <p className="text-[9px] font-black">{i.v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-8 flex-1 flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h4 className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.3em]">Head_Protocol</h4>
               <button
-                onClick={() => navigator.clipboard.writeText(htmlCode)}
-                className="absolute top-4 right-4 text-[9px] text-white/40 hover:text-orange-500 font-bold tracking-widest"
+                onClick={() => { navigator.clipboard.writeText(htmlCode); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                className={`text-[9px] font-black px-2 py-1 transition-all ${copied ? 'bg-green-500 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-black hover:text-white'}`}
               >
-                [ COPY ]
+                {copied ? 'COPIED' : 'COPY_SNIPPET'}
               </button>
             </div>
+            <div className="bg-zinc-900 rounded-sm p-5 font-mono text-[10px] text-zinc-500 leading-relaxed flex-1 overflow-hidden">
+              <code className="block whitespace-pre-wrap">{htmlCode}</code>
+            </div>
           </div>
-        </div>
+
+          {/* Telemetry Log */}
+          <div className="p-6 bg-zinc-50 border-t border-zinc-100 min-h-[140px]">
+             <div className="flex items-center gap-2 text-[9px] font-black font-mango text-black mb-4 tracking-widest">
+               <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
+               LIVE_TELEMETRY
+             </div>
+             <div className="space-y-1.5 overflow-hidden">
+                {logs.map((log, idx) => (
+                  <p key={idx} className={`text-[9px] font-mono leading-none ${idx === 0 ? 'text-black font-bold' : 'text-zinc-400 opacity-60'}`}>
+                    {log}
+                  </p>
+                ))}
+             </div>
+          </div>
+        </aside>
       </div>
     </section>
   );

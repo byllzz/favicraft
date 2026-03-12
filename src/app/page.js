@@ -38,8 +38,8 @@ export default function FaviconGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FF6B35] p-4 md:p-8 font-serif uppercase tracking-tight selection:bg-orange-200">
-      <div className="bg-[#FDF8F1] rounded-sm shadow-2xl relative transition-all duration-700">
+    <div className="min-h-screen bg-white text-black md: font-serif uppercase tracking-tight selection:bg-orange-200">
+      <div className="bg-transparent rounded-sm shadow-2xl relative transition-all duration-700">
         <Navbar onReset={handleReset} />
 
         {/* toggle: big hero vs mini header */}
@@ -48,7 +48,7 @@ export default function FaviconGenerator() {
             <Hero />
           </section>
         ) : (
-          <section className="pt-20 pb-10 flex flex-col items-center justify-center px-8 animate-in slide-in-from-top-4 duration-1000">
+          <section className="pt-40 pb-10 flex flex-col items-center justify-center px-8 animate-in slide-in-from-top-4 duration-1000">
             <span className="text-[10px] font-black tracking-[0.5em] text-orange-500 mb-4">Workspace Active</span>
             <h1 className="text-4xl md:text-5xl font-medium tracking-tighter italic text-center leading-none">
               Refining your <br /> visual identity
