@@ -13,7 +13,7 @@ Built for clarity, industrial speed, and technical depth - making your site's id
 ---
 [![Visit FaviCraft](https://img.shields.io/badge/View-FaviCraft-9B72FF?style=flat)](https://favicraft.vercel.app)
 
-![Favicraft Preview](/favicraft/public/preview.png)
+<img width="100%" alt="Favicraft Preview" src="./public/preview.png" />
 
 ⭐ Star the repo if you like it — help us build the legacy!
 
