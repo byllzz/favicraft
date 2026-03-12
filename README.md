@@ -10,14 +10,14 @@ Built for clarity, industrial speed, and technical depth - making your site's id
 [![Author: Bilal Malik](https://img.shields.io/badge/Author-Bilal%20Malik-9B72FF.svg?style=flat)](https://github.com/byllzz)
 ![Latest Release - 12 Mar 2026](https://img.shields.io/badge/Latest%20Release-12%20Mar%202026-9B72FF.svg)
 
----
+
 [![Visit FaviCraft](https://img.shields.io/badge/View-FaviCraft-9B72FF?style=flat)](https://favicraft.vercel.app)
 
 <img width="100%" alt="Favicraft Preview" src="./public/preview.png" />
 
 ⭐ Star the repo if you like it — help us build the legacy!
 
----
+
 
 ## ✨ Features
 
