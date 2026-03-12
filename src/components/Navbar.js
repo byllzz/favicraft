@@ -54,7 +54,7 @@ export default function Navbar({ onReset }) {
 
         {/* GitHub Action */}
         <a
-          href="https://github.com"
+          href="https://github.com/byllzz/favicraft.git"
           target="_blank"
           rel="noopener noreferrer"
           className="relative group p-2 overflow-hidden rounded-full hover:bg-black transition-colors duration-300"

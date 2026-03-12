@@ -53,7 +53,7 @@ export default function Footer() {
             <ul className="flex flex-col gap-2 text-[11px] font-bold uppercase italic tracking-tight">
               <li><a href="#" className="hover:text-orange-600 flex items-center gap-1 group">Twitter <ArrowUpRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" /></a></li>
               <li><a href="#" className="hover:text-orange-600 flex items-center gap-1 group">LinkedIn <ArrowUpRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" /></a></li>
-              <li><a href="#" className="hover:text-orange-600 flex items-center gap-1 group">GitHub <ArrowUpRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" /></a></li>
+              <li><a href="https://github.com/byllzz/favicraft.git" target="_blank" className="hover:text-orange-600 flex items-center gap-1 group">GitHub <ArrowUpRight size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" /></a></li>
             </ul>
           </div>
 
