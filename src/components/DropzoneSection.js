@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 
 export default function DropzoneSection({ getRootProps, getInputProps, isDragActive, preview, file }) {
   // state: viewport animation tracking
@@ -70,7 +71,7 @@ export default function DropzoneSection({ getRootProps, getInputProps, isDragAct
           <div className="animate-in fade-in zoom-in-95 duration-700 flex flex-col items-center w-full z-10 mt-8">
             <div className="bg-[#F8F8F8] p-12 rounded-2xl border border-zinc-200 shadow-inner mb-8 relative group-hover:scale-[1.02] transition-transform duration-500">
               <div className="absolute top-4 right-4 text-[8px] font-black opacity-20 tracking-widest font-mango">MASTER_FILE</div>
-              <img
+              <Image
                 src={preview}
                 alt="Preview"
                 className="w-48 h-48 object-contain drop-shadow-2xl"
@@ -96,7 +97,7 @@ export default function DropzoneSection({ getRootProps, getInputProps, isDragAct
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-5xl md:text-6xl font-medium tracking-tighter uppercase italic">
+              <h3 className="text-5xl text-black md:text-6xl font-medium tracking-tighter uppercase italic">
                 {isDragActive ? 'Release to Load' : 'Drag & Drop Asset'}
               </h3>
               <div className="flex items-center justify-center gap-4 text-[10px] font-bold font-mango tracking-[0.2em] text-zinc-400 uppercase">
