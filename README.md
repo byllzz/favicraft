@@ -19,7 +19,7 @@ Built for clarity, industrial speed, and technical depth - making your site's id
 
 
 
-## ✨ Features
+##  Features
 
 - ✔️ **Lanczos3 Rendering Engine** — Highest-fidelity downsampling
 - ✔️ **Multi-Format Export** — Standard, Retina, Apple Touch, Android PWA
