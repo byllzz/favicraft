@@ -67,7 +67,7 @@ This project is licensed under the **MIT License** — see [LICENSE.md](./LICENS
 
 ---
 
-##  Connect & Support
+##  Connect 
 
 If you have suggestions or want to collaborate on the next technical node:
 
