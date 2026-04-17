@@ -71,7 +71,7 @@ This project is licensed under the **MIT License** — see [LICENSE.md](./LICENS
 
 If you have suggestions or want to collaborate on the next technical node:
 
--  **Email the Lab**
+-  **Email the Lab:** bilalmlkdev@gmail.com
 -  **GitHub:** https://github.com/byllzz
 
 ---
