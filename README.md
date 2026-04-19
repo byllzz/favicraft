@@ -16,9 +16,7 @@ Built for clarity, industrial speed, and technical depth - making your site's id
 <img width="100%" alt="Favicraft Preview" src="./public/preview.png" />
 
 ⭐ Star the repo if you like it — help us build the legacy!
-
-
-
+---
 ##  Features
 
 - ✔️ **Lanczos3 Rendering Engine** — Highest-fidelity downsampling
